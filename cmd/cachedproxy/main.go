@@ -1,8 +1,9 @@
 package main
 
 import (
-	"dc-cb/cache"
-	"dc-cb/proxy"
+	"cachedproxy/pkg/cache"
+	"cachedproxy/pkg/proxy"
+	"cachedproxy/pkg/utils"
 	"encoding/json"
 	"fmt"
 	"github.com/joho/godotenv"
@@ -119,9 +120,9 @@ func main() {
 		RedisAddr:         os.Getenv("REDIS_ADDR"),
 		MemcachedAddr:     os.Getenv("MEMCACHED_ADDR"),
 		CacheType:         os.Getenv("CACHE_TYPE"),
-		CacheExpirationMs: time.Duration(getIntEnv("CACHE_EXPIRATION_MS", 10000)) * time.Millisecond,
-		HttpTimeoutMs:     time.Duration(getIntEnv("HTTP_TIMEOUT_MS", 2000)) * time.Millisecond,
-		CbTimeoutMs:       time.Duration(getIntEnv("CB_TIMEOUT_MS", 60000)) * time.Millisecond,
+		CacheExpirationMs: time.Duration(utils.GetIntEnv("CACHE_EXPIRATION_MS", 10000)) * time.Millisecond,
+		HttpTimeoutMs:     time.Duration(utils.GetIntEnv("HTTP_TIMEOUT_MS", 2000)) * time.Millisecond,
+		CbTimeoutMs:       time.Duration(utils.GetIntEnv("CB_TIMEOUT_MS", 60000)) * time.Millisecond,
 	}
 	log.Infoln(settings)
 
@@ -130,7 +131,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	listenPort := getEnv("LISTEN_PORT", "4000")
+	listenPort := utils.GetEnv("LISTEN_PORT", "4000")
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", app.restHandler)

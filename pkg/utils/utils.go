@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	log "github.com/sirupsen/logrus"
@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-func getEnv(key, defaultValue string) string {
+func GetEnv(key, defaultValue string) string {
 	value := os.Getenv(key)
 
 	if len(value) == 0 {
@@ -16,7 +16,7 @@ func getEnv(key, defaultValue string) string {
 	return value
 }
 
-func getIntEnv(key string, defaultValue int) int {
+func GetIntEnv(key string, defaultValue int) int {
 	valuestr := os.Getenv(key)
 
 	if len(valuestr) == 0 {
@@ -33,4 +33,3 @@ func getIntEnv(key string, defaultValue int) int {
 
 	return valueint
 }
-
