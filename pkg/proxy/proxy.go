@@ -40,16 +40,16 @@ func NewProxy(client cache.Cache, proxySettings *Settings) (*Proxy, error) {
 	return proxy, nil
 }
 
-func (p *Proxy) Request(username, password, url string) (response []byte, err error) {
+func (p *Proxy) Request(username, password, url string) (response []byte, isCached bool, err error) {
 	val, err := p.client.Get(url)
 	if err == nil {
-		log.Infof("HIT: got %s key, '%s' value from client", url, val)
-		return []byte(val), nil
+		log.Infof("HIT: got %s key from cache client", url)
+		return []byte(val), true, nil
 	} else if err != nil && err != cache.Nil {
 		log.Errorf("cache client get value error: %s, skipping", err)
 	}
 
-	log.Infof("MISS: no %s key in client", url)
+	log.Infof("MISS: no %s key in cache client", url)
 
 	body, err := p.cb.Execute(func() (interface{}, error) {
 		client := &http.Client{
@@ -79,7 +79,7 @@ func (p *Proxy) Request(username, password, url string) (response []byte, err er
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("got error %s", err.Error())
+		return nil, false, fmt.Errorf("got error %s", err.Error())
 	}
 
 	log.Infof("SAVE: saving %s response to client", url)
@@ -88,5 +88,5 @@ func (p *Proxy) Request(username, password, url string) (response []byte, err er
 		log.Errorf("cache client set value error: %s, skipping", err)
 	}
 
-	return body.([]byte), nil
+	return body.([]byte), false, nil
 }

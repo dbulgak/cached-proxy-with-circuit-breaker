@@ -7,6 +7,7 @@ import (
 )
 
 type MemcachedL struct {
+	BaseCache
 	client        *memcache.Client
 	expirationSec int32
 }
@@ -29,7 +30,7 @@ func NewMemcached(settings *MemcachedSettings) *MemcachedL {
 }
 
 func (m *MemcachedL) Get(key string) (value []byte, err error) {
-	item, err := m.client.Get(key)
+	item, err := m.client.Get(m.GetHashedKey(key))
 	if err == memcache.ErrCacheMiss {
 		return nil, Nil
 	} else if err != nil {
@@ -41,7 +42,7 @@ func (m *MemcachedL) Get(key string) (value []byte, err error) {
 
 func (m *MemcachedL) Set(key string, value []byte) (err error) {
 	err = m.client.Set(&memcache.Item{
-		Key:        key,
+		Key:        m.GetHashedKey(key),
 		Value:      value,
 		Flags:      0,
 		Expiration: m.expirationSec,

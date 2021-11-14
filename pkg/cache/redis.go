@@ -7,6 +7,7 @@ import (
 )
 
 type RedisL struct {
+	BaseCache
 	client     *redis.Client
 	expiration time.Duration
 }
@@ -31,7 +32,7 @@ func NewRedis(settings *RedisSettings) *RedisL {
 }
 
 func (r *RedisL) Get(key string) ([]byte, error) {
-	value, err := r.client.Get(key).Result()
+	value, err := r.client.Get(r.GetHashedKey(key)).Result()
 	if err == redis.Nil {
 		return nil, Nil
 	} else if err != nil {
@@ -42,6 +43,6 @@ func (r *RedisL) Get(key string) ([]byte, error) {
 }
 
 func (r *RedisL) Set(key string, value []byte) (err error) {
-	err = r.client.Set(key, value, r.expiration).Err()
+	err = r.client.Set(r.GetHashedKey(key), value, r.expiration).Err()
 	return err
 }
