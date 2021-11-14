@@ -9,7 +9,7 @@ import (
 )
 
 func restHandler(w http.ResponseWriter, r *http.Request) {
-	var delay float64 = 1.5 + rand.Float64() * 1
+	var delay float64 = 1.5 + rand.Float64()*1
 	log.Infof("delaying for %f seconds", delay)
 	time.Sleep(time.Duration(delay) * time.Second)
 	fmt.Fprintf(w, "done, delay %f seconds\n", delay)

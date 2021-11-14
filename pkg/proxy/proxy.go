@@ -1,7 +1,7 @@
 package proxy
 
 import (
-	"dc-cb/cache"
+	"cachedproxy/pkg/cache"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/sony/gobreaker"
@@ -32,8 +32,8 @@ func NewProxy(client cache.Cache, proxySettings *Settings) (*Proxy, error) {
 	cb := gobreaker.NewCircuitBreaker(settings)
 
 	proxy := &Proxy{
-		cb:     cb,
-		client: client,
+		cb:       cb,
+		client:   client,
 		settings: proxySettings,
 	}
 

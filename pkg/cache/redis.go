@@ -19,7 +19,7 @@ type RedisSettings struct {
 }
 
 func NewRedis(settings *RedisSettings) *RedisL {
-	redis := &RedisL{
+	client := &RedisL{
 		client: redis.NewClient(&redis.Options{
 			Addr:     settings.Addr,
 			Password: settings.Password,
@@ -27,7 +27,7 @@ func NewRedis(settings *RedisSettings) *RedisL {
 		}),
 		expiration: settings.Expiration,
 	}
-	return redis
+	return client
 }
 
 func (r *RedisL) Get(key string) ([]byte, error) {

@@ -1,4 +1,4 @@
-module dc-cb
+module cachedproxy
 
 go 1.17
 
