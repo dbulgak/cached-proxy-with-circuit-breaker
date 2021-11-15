@@ -58,7 +58,7 @@ func (p *Proxy) Request(username string, password string, req cache.Request) (re
 		}
 
 		method := strings.ToUpper(req.Method)
-		if method != "POST" || method != "GET" {
+		if method != "POST" && method != "GET" {
 			return nil, fmt.Errorf("unexpected method %s", method)
 		}
 
