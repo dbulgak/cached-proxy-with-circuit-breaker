@@ -26,7 +26,13 @@ type Settings struct {
 }
 
 type Request struct {
-	Url string
+	Url    string
+	Method string
+	Body   string
+}
+
+func (r Request) String() string {
+	return fmt.Sprintf("%s_%s_%s", r.Url, r.Method, r.Body)
 }
 
 func NewApp(settings *Settings) (*App, error) {
@@ -78,27 +84,22 @@ func getCacheClient(settings *Settings) (cache.Cache, error) {
 }
 
 func (app *App) RestHandler(w http.ResponseWriter, r *http.Request) {
-	username, password, ok := r.BasicAuth()
-
 	var req Request
 	err := json.NewDecoder(r.Body).Decode(&req)
 
-	if ok {
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		resp, isCached, err := app.Proxy.Request(username, password, req.Url)
-		w.Header().Set("X-Cache", strconv.FormatBool(isCached))
-		if err != nil {
-			log.Error(err.Error())
-			http.Error(w, "", http.StatusBadRequest)
-			return
-		}
-
-		w.Write(resp)
-	} else {
-		fmt.Fprintf(w, "url %s, no basic auth", req.Url)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
+
+	username, password, _ := r.BasicAuth()
+	resp, isCached, err := app.Proxy.Request(username, password, req)
+	w.Header().Set("X-Cache", strconv.FormatBool(isCached))
+	if err != nil {
+		log.Error(err.Error())
+		http.Error(w, "", http.StatusBadRequest)
+		return
+	}
+
+	w.Write(resp)
 }

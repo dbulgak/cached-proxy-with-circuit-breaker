@@ -1,12 +1,14 @@
 package proxy
 
 import (
+	"cachedproxy/pkg/app"
 	"cachedproxy/pkg/cache"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/sony/gobreaker"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -40,22 +42,28 @@ func NewProxy(client cache.Cache, proxySettings *Settings) (*Proxy, error) {
 	return proxy, nil
 }
 
-func (p *Proxy) Request(username, password, url string) (response []byte, isCached bool, err error) {
-	val, err := p.client.Get(url)
+func (p *Proxy) Request(username string, password string, req app.Request) (response []byte, isCached bool, err error) {
+	val, err := p.client.Get(req)
 	if err == nil {
-		log.Infof("HIT: got %s key from cache client", url)
+		log.Infof("HIT: got %s key from cache client", req)
 		return []byte(val), true, nil
 	} else if err != nil && err != cache.Nil {
 		log.Errorf("cache client get value error: %s, skipping", err)
 	}
 
-	log.Infof("MISS: no %s key in cache client", url)
+	log.Infof("MISS: no %s key in cache client", req)
 
 	body, err := p.cb.Execute(func() (interface{}, error) {
 		client := &http.Client{
 			Timeout: p.settings.HttpTimeoutMs,
 		}
-		req, err := http.NewRequest("GET", url, nil)
+
+		method := strings.ToUpper(req.Method)
+		if method != "POST" || method != "GET" {
+			return nil, fmt.Errorf("unexpected method %s", method)
+		}
+
+		req, err := http.NewRequest(req.Method, req.Url, strings.NewReader(req.Body))
 		if err != nil {
 			return nil, fmt.Errorf("got error %s", err.Error())
 		}
@@ -82,8 +90,8 @@ func (p *Proxy) Request(username, password, url string) (response []byte, isCach
 		return nil, false, fmt.Errorf("got error %s", err.Error())
 	}
 
-	log.Infof("SAVE: saving %s response to client", url)
-	err = p.client.Set(url, body.([]byte))
+	log.Infof("SAVE: saving %s response to client", req)
+	err = p.client.Set(req, body.([]byte))
 	if err != nil {
 		log.Errorf("cache client set value error: %s, skipping", err)
 	}
