@@ -25,16 +25,6 @@ type Settings struct {
 	HttpTimeoutMs     time.Duration
 }
 
-type Request struct {
-	Url    string
-	Method string
-	Body   string
-}
-
-func (r Request) String() string {
-	return fmt.Sprintf("%s_%s_%s", r.Url, r.Method, r.Body)
-}
-
 func NewApp(settings *Settings) (*App, error) {
 	client, err := getCacheClient(settings)
 	if err != nil {
@@ -84,7 +74,7 @@ func getCacheClient(settings *Settings) (cache.Cache, error) {
 }
 
 func (app *App) RestHandler(w http.ResponseWriter, r *http.Request) {
-	var req Request
+	var req cache.Request
 	err := json.NewDecoder(r.Body).Decode(&req)
 
 	if err != nil {

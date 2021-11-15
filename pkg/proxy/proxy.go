@@ -1,7 +1,6 @@
 package proxy
 
 import (
-	"cachedproxy/pkg/app"
 	"cachedproxy/pkg/cache"
 	"fmt"
 	log "github.com/sirupsen/logrus"
@@ -42,7 +41,7 @@ func NewProxy(client cache.Cache, proxySettings *Settings) (*Proxy, error) {
 	return proxy, nil
 }
 
-func (p *Proxy) Request(username string, password string, req app.Request) (response []byte, isCached bool, err error) {
+func (p *Proxy) Request(username string, password string, req cache.Request) (response []byte, isCached bool, err error) {
 	val, err := p.client.Get(req)
 	if err == nil {
 		log.Infof("HIT: got %s key from cache client", req)

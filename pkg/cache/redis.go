@@ -1,7 +1,6 @@
 package cache
 
 import (
-	"cachedproxy/pkg/app"
 	"github.com/go-redis/redis"
 	log "github.com/sirupsen/logrus"
 	"time"
@@ -32,7 +31,7 @@ func NewRedis(settings *RedisSettings) *RedisL {
 	return client
 }
 
-func (r *RedisL) Get(req app.Request) ([]byte, error) {
+func (r *RedisL) Get(req Request) ([]byte, error) {
 	value, err := r.client.Get(r.GetHashedKey(req)).Result()
 	if err == redis.Nil {
 		return nil, Nil
@@ -43,7 +42,7 @@ func (r *RedisL) Get(req app.Request) ([]byte, error) {
 	return []byte(value), err
 }
 
-func (r *RedisL) Set(req app.Request, value []byte) (err error) {
+func (r *RedisL) Set(req Request, value []byte) (err error) {
 	err = r.client.Set(r.GetHashedKey(req), value, r.expiration).Err()
 	return err
 }
