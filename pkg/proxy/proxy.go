@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"cachedproxy/pkg/cache"
+	"cachedproxy/pkg/data"
 	"fmt"
 	log "github.com/sirupsen/logrus"
 	"github.com/sony/gobreaker"
@@ -41,16 +42,18 @@ func NewProxy(client cache.Cache, proxySettings *Settings) (*Proxy, error) {
 	return proxy, nil
 }
 
-func (p *Proxy) Request(username string, password string, req cache.Request) (response []byte, isCached bool, err error) {
+func (p *Proxy) Request(username string, password string, req *data.DecodedRequest) (response []byte, isCached bool, err error) {
+	log.WithField("req", req).Infof("REQUEST")
+
 	val, err := p.client.Get(req)
 	if err == nil {
-		log.Infof("HIT: got %s key from cache client", req)
+		log.Infof("HIT: got key from cache client")
 		return []byte(val), true, nil
 	} else if err != nil && err != cache.Nil {
 		log.Errorf("cache client get value error: %s, skipping", err)
 	}
 
-	log.Infof("MISS: no %s key in cache client", req)
+	log.Infof("MISS: no key in cache client")
 
 	body, err := p.cb.Execute(func() (interface{}, error) {
 		client := &http.Client{
@@ -89,7 +92,7 @@ func (p *Proxy) Request(username string, password string, req cache.Request) (re
 		return nil, false, fmt.Errorf("got error %s", err.Error())
 	}
 
-	log.Infof("SAVE: saving %s response to client", req)
+	log.WithField("body", body).Infof("SAVE: saving response to client")
 	err = p.client.Set(req, body.([]byte))
 	if err != nil {
 		log.Errorf("cache client set value error: %s, skipping", err)

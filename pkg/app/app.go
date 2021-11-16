@@ -2,6 +2,7 @@ package app
 
 import (
 	"cachedproxy/pkg/cache"
+	"cachedproxy/pkg/data"
 	"cachedproxy/pkg/proxy"
 	"encoding/json"
 	"fmt"
@@ -74,16 +75,23 @@ func getCacheClient(settings *Settings) (cache.Cache, error) {
 }
 
 func (app *App) RestHandler(w http.ResponseWriter, r *http.Request) {
-	var req cache.Request
+	var req data.Request
 	err := json.NewDecoder(r.Body).Decode(&req)
-
 	if err != nil {
+		log.Error(err.Error())
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	decodedRequest, err := data.DecodeRequest(req)
+	if err != nil {
+		log.Error(err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	username, password, _ := r.BasicAuth()
-	resp, isCached, err := app.Proxy.Request(username, password, req)
+	resp, isCached, err := app.Proxy.Request(username, password, decodedRequest)
 	w.Header().Set("X-Cache", strconv.FormatBool(isCached))
 	if err != nil {
 		log.Error(err.Error())
