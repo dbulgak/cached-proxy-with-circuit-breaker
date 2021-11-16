@@ -13,9 +13,7 @@ import (
 )
 
 func main() {
-	log.SetFormatter(&log.TextFormatter{
-		FullTimestamp: true,
-	})
+	log.SetFormatter(&log.JSONFormatter{})
 
 	err := godotenv.Load()
 	if err != nil {
