@@ -80,11 +80,15 @@ func (p *Proxy) Request(username string, password string, req *data.DecodedReque
 		if err != nil {
 			return nil, fmt.Errorf("got error %s", err.Error())
 		}
-		defer resp.Body.Close()
 
+		defer resp.Body.Close()
 		buf, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			return buf, fmt.Errorf("got error %s", err.Error())
+		}
+
+		if resp.StatusCode != 200 {
+			return nil, fmt.Errorf("unexpected statusCode %d", resp.StatusCode)
 		}
 
 		return buf, nil
