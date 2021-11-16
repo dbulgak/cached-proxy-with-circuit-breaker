@@ -77,32 +77,34 @@ func getCacheClient(settings *Settings) (cache.Cache, error) {
 }
 
 func (app *App) RestHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, data.RequestIdKey, uuid.New().String())
+
+	logCtx := log.WithField(data.RequestIdKey, ctx.Value(data.RequestIdKey))
+
 	var req data.Request
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		log.Error(err.Error())
+		logCtx.Error(err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	decodedRequest, err := data.DecodeRequest(req)
 	if err != nil {
-		log.Error(err.Error())
+		logCtx.Error(err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, data.RequestIdKey, uuid.New().String())
-
 	username, password, _ := r.BasicAuth()
 	resp, isCached, err := app.Proxy.Request(username, password, decodedRequest, ctx)
-	w.Header().Set("X-Cache", strconv.FormatBool(isCached))
 	if err != nil {
-		log.Error(err.Error())
+		logCtx.Error(err.Error())
 		http.Error(w, "", http.StatusBadRequest)
 		return
 	}
 
+	w.Header().Set("X-Cache", strconv.FormatBool(isCached))
 	w.Write(resp)
 }
