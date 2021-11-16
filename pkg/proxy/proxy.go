@@ -47,15 +47,16 @@ func (p *Proxy) Request(username string, password string, req *data.DecodedReque
 	logCtx := log.WithField(data.RequestIdKey, ctx.Value(data.RequestIdKey))
 	logCtx.WithField("request", req).Infof("REQUEST")
 
-	val, err := p.client.Get(req)
+	key := cache.GetHashedKey(req)
+	val, err := p.client.Get(key)
 	if err == nil {
-		logCtx.Infof("HIT: got key from cache client")
+		logCtx.Infof("HIT: got key %s from cache client", key)
 		return []byte(val), true, nil
 	} else if err != nil && err != cache.Nil {
 		logCtx.Errorf("cache client get value error: %s, skipping", err)
 	}
 
-	logCtx.Infof("MISS: no key in cache client")
+	logCtx.Infof("MISS: no key %s in cache client", key)
 
 	body, err := p.cb.Execute(func() (interface{}, error) {
 		client := &http.Client{
@@ -99,7 +100,7 @@ func (p *Proxy) Request(username string, password string, req *data.DecodedReque
 	}
 
 	logCtx.WithField("body", string(body.([]byte))).Infof("SAVE: saving response to client")
-	err = p.client.Set(req, body.([]byte))
+	err = p.client.Set(key, body.([]byte))
 	if err != nil {
 		logCtx.Errorf("cache client set value error: %s, skipping", err)
 	}

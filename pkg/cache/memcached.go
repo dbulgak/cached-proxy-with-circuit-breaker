@@ -1,14 +1,12 @@
 package cache
 
 import (
-	"cachedproxy/pkg/data"
 	"github.com/bradfitz/gomemcache/memcache"
 	log "github.com/sirupsen/logrus"
 	"time"
 )
 
 type MemcachedL struct {
-	BaseCache
 	client        *memcache.Client
 	expirationSec int32
 }
@@ -30,8 +28,8 @@ func NewMemcached(settings *MemcachedSettings) *MemcachedL {
 	return memcached
 }
 
-func (m *MemcachedL) Get(req *data.DecodedRequest) (value []byte, err error) {
-	item, err := m.client.Get(m.GetHashedKey(req))
+func (m *MemcachedL) Get(key string) (value []byte, err error) {
+	item, err := m.client.Get(key)
 	if err == memcache.ErrCacheMiss {
 		return nil, Nil
 	} else if err != nil {
@@ -41,9 +39,9 @@ func (m *MemcachedL) Get(req *data.DecodedRequest) (value []byte, err error) {
 	return item.Value, err
 }
 
-func (m *MemcachedL) Set(req *data.DecodedRequest, value []byte) (err error) {
+func (m *MemcachedL) Set(key string, value []byte) (err error) {
 	err = m.client.Set(&memcache.Item{
-		Key:        m.GetHashedKey(req),
+		Key:        key,
 		Value:      value,
 		Flags:      0,
 		Expiration: m.expirationSec,

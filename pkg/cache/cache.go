@@ -14,14 +14,11 @@ type CacheError string
 func (e CacheError) Error() string { return string(e) }
 
 type Cache interface {
-	Get(req *data.DecodedRequest) (value []byte, err error)
-	Set(req *data.DecodedRequest, value []byte) (err error)
+	Get(key string) (value []byte, err error)
+	Set(key string, value []byte) (err error)
 }
 
-type BaseCache struct {
-}
-
-func (b *BaseCache) GetHashedKey(req *data.DecodedRequest) string {
+func GetHashedKey(req *data.DecodedRequest) string {
 	hash := md5.Sum([]byte(req.String()))
 	hashedkey := fmt.Sprintf("%s_%s", "cachedproxy", hex.EncodeToString(hash[:]))
 	return hashedkey

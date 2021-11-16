@@ -1,14 +1,12 @@
 package cache
 
 import (
-	"cachedproxy/pkg/data"
 	"github.com/go-redis/redis"
 	log "github.com/sirupsen/logrus"
 	"time"
 )
 
 type RedisL struct {
-	BaseCache
 	client     *redis.Client
 	expiration time.Duration
 }
@@ -32,8 +30,8 @@ func NewRedis(settings *RedisSettings) *RedisL {
 	return client
 }
 
-func (r *RedisL) Get(req *data.DecodedRequest) ([]byte, error) {
-	value, err := r.client.Get(r.GetHashedKey(req)).Result()
+func (r *RedisL) Get(key string) ([]byte, error) {
+	value, err := r.client.Get(key).Result()
 	if err == redis.Nil {
 		return nil, Nil
 	} else if err != nil {
@@ -43,7 +41,7 @@ func (r *RedisL) Get(req *data.DecodedRequest) ([]byte, error) {
 	return []byte(value), err
 }
 
-func (r *RedisL) Set(req *data.DecodedRequest, value []byte) (err error) {
-	err = r.client.Set(r.GetHashedKey(req), value, r.expiration).Err()
+func (r *RedisL) Set(key string, value []byte) (err error) {
+	err = r.client.Set(key, value, r.expiration).Err()
 	return err
 }
