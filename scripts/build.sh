@@ -12,7 +12,7 @@ cd "$DIR"
 
 # Determine the arch/os combos we're building for
 XC_ARCH=${XC_ARCH:-"amd64"}
-XC_OS=${XC_OS:-linux darwin}
+XC_OS=${XC_OS:-linux darwin windows}
 XC_EXCLUDE_OSARCH="!darwin/arm !darwin/386"
 
 # Delete the old dir

@@ -92,7 +92,7 @@ func (p *Proxy) Request(username string, password string, req *data.DecodedReque
 		return nil, false, fmt.Errorf("got error %s", err.Error())
 	}
 
-	log.WithField("body", body).Infof("SAVE: saving response to client")
+	log.WithField("body", string(body.([]byte))).Infof("SAVE: saving response to client")
 	err = p.client.Set(req, body.([]byte))
 	if err != nil {
 		log.Errorf("cache client set value error: %s, skipping", err)
