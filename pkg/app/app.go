@@ -4,8 +4,10 @@ import (
 	"cachedproxy/pkg/cache"
 	"cachedproxy/pkg/data"
 	"cachedproxy/pkg/proxy"
+	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
@@ -90,8 +92,11 @@ func (app *App) RestHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, data.RequestIdKey, uuid.New().String())
+
 	username, password, _ := r.BasicAuth()
-	resp, isCached, err := app.Proxy.Request(username, password, decodedRequest)
+	resp, isCached, err := app.Proxy.Request(username, password, decodedRequest, ctx)
 	w.Header().Set("X-Cache", strconv.FormatBool(isCached))
 	if err != nil {
 		log.Error(err.Error())

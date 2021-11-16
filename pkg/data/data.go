@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+const RequestIdKey = "requestId"
+
 type Request struct {
 	Url    string
 	Method string
